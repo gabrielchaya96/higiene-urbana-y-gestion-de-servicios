@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análisis de Servicios de Higiene Urbana - Salta</title>
-    <!-- Carga de Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configuración de Tailwind para usar el color primario y la fuente Inter --><script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -73,19 +73,24 @@
 
     <div id="app" class="min-h-screen flex flex-col lg:flex-row">
 
-        <!-- Barra Lateral (Sidebar) de Navegación --><aside id="sidebar" class="w-full lg:w-72 bg-white shadow-xl lg:h-screen lg:sticky top-0 p-4 lg:p-6 flex-shrink-0">
+        <!-- Sidebar (Menu de Navegación) -->
+        <aside id="sidebar" class="w-full lg:w-72 bg-white shadow-xl lg:h-screen lg:sticky top-0 p-4 lg:p-6 flex-shrink-0">
             <h1 class="text-2xl font-extrabold text-primary-green mb-6 border-b pb-3">Servicios de Higiene Urbana</h1>
             <nav id="nav-menu" class="space-y-1">
-                <!-- El menú se llenará dinámicamente con JS --></nav>
+                <!-- Se cargará el menú dinámicamente aquí -->
+            </nav>
         </aside>
 
-        <!-- Contenido Principal --><main id="content-area" class="flex-grow p-4 lg:p-10">
-            <!-- Título Principal --><div class="mb-8">
+        <!-- Área de Contenido Principal -->
+        <main id="content-area" class="flex-grow p-4 lg:p-10">
+            
+            <div class="mb-8">
                 <h2 id="main-title" class="text-4xl font-bold text-gray-700">Resumen Ejecutivo</h2>
                 <p id="main-subtitle" class="text-xl text-primary-green mt-1">Plan Integral de Agrotécnica Fueguina S.A.C.I.F.</p>
             </div>
 
-            <!-- Sección de Preguntas con Gemini --><div class="bg-white rounded-xl shadow-lg p-6 lg:p-8 mb-8">
+            <!-- Sección de Preguntas a Gemini -->
+            <div class="bg-white rounded-xl shadow-lg p-6 lg:p-8 mb-8">
                 <h3 class="text-2xl font-semibold text-gemini-purple mb-4 flex items-center">
                     <svg class="icon mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9.247a4.75 4.75 0 011.536-1.536l-2.45-2.45a4.75 4.75 0 01-1.536 1.536l2.45 2.45zm-1.536 1.536c-.495.495-.884 1.055-1.156 1.666l-2.45-2.45a4.75 4.75 0 011.666-1.156l2.45 2.45zm-2.45-2.45l2.45-2.45c-.61-.272-1.17-.661-1.666-1.156l-2.45 2.45a4.75 4.75 0 011.156 1.666zm1.536 1.536c.495.495 1.055.884 1.666 1.156l-2.45 2.45a4.75 4.75 0 01-1.156-1.666l2.45-2.45zM12 11a1 1 0 100-2 1 1 0 000 2z"></path>
@@ -104,16 +109,20 @@
                     <p id="gemini-response-text" class="text-gray-700 mt-2 leading-relaxed"></p>
                 </div>
                 <div id="gemini-error" class="mt-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg hidden">
-                    <p>Ocurrió un error al intentar comunicarse con Gemini. Por favor, intente de nuevo.</p>
+                    <p>Ocurrió un error al intentar comunicarse con Gemini. Esto puede ser por un error de red o que la clave API no es válida.</p>
                 </div>
             </div>
 
-            <!-- Aquí se cargará el contenido dinámico --><div id="service-details" class="bg-white rounded-xl shadow-lg p-6 lg:p-10">
-                <!-- Botón de resumen de servicio por Gemini (solo visible en detalles de servicio) --><button id="generate-summary-btn" class="bg-gemini-purple text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 mb-6 flex items-center hidden">
+            <!-- Detalle de Servicio -->
+            <div id="service-details" class="bg-white rounded-xl shadow-lg p-6 lg:p-10">
+                
+                <button id="generate-summary-btn" class="bg-gemini-purple text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 mb-6 flex items-center hidden">
                     <span id="generate-summary-text">Generar Resumen con Gemini</span>
                     <div id="generate-summary-spinner" class="spinner ml-2 hidden"></div>
                 </button>
-                <!-- El contenido del servicio se cargará aquí --></div>
+                
+                <!-- Aquí se cargará el contenido dinámico -->
+            </div>
         </main>
     </div>
 
@@ -121,10 +130,11 @@
         // Importa la biblioteca de Gemini
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        // TODO: Reemplaza con tu API Key.
-        // ADVERTENCIA: En una aplicación de producción, NUNCA expongas tu API Key directamente en el cliente.
-        // Utiliza un backend para manejar las llamadas a la API de Gemini de forma segura.
-        const API_KEY = "AIzaSyAfZ7Ej9bw5ns6098sK59RwpC-zkE2ORvc"; // <<< REEMPLAZA ESTO
+        // !!! CLAVE API APLICADA SEGÚN LA SOLICITUD DEL USUARIO !!!
+        // ADVERTENCIA: En una aplicación de producción, NUNCA expongas tu API Key en el cliente.
+        // Se ha insertado la clave que has proporcionado para activar las funciones.
+        const API_KEY = "AIzaSyAfZ7Ej9bw5ns6098sK59RwpC-zkE2ORvc";
+        
         const genAI = new GoogleGenerativeAI(API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
@@ -491,20 +501,59 @@
             spinnerElem.classList.remove('hidden');
             geminiErrorDiv.classList.add('hidden'); // Ocultar errores anteriores
 
+            // Comprobación de API Key (aunque el usuario la puso, esto es buena práctica)
+            if (API_KEY === "YOUR_GEMINI_API_KEY" || !API_KEY.startsWith("AIzaSy")) {
+                geminiErrorDiv.classList.remove('hidden');
+                geminiErrorDiv.querySelector('p').textContent = "ERROR: La clave API de Gemini no es válida o no está configurada correctamente.";
+                btnTextElem.classList.remove('hidden');
+                spinnerElem.classList.add('hidden');
+                return null;
+            }
+
+
             try {
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
+                // Genera el contenido. Utilizamos el método fetch estándar para mayor compatibilidad.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    // Añadimos un systemInstruction para guiar el tono y el enfoque
+                    systemInstruction: {
+                        parts: [{ text: "Actúa como un experto en servicios urbanos. Responde de forma concisa y profesional, basándote estrictamente en los datos proporcionados sobre los servicios de higiene urbana de Salta." }]
+                    },
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error.message || 'Error desconocido de la API de Gemini.');
+                }
+                
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!text) {
+                     throw new Error('La API de Gemini no devolvió texto. Esto puede ser un error interno del modelo.');
+                }
+
                 return text;
+
             } catch (error) {
                 console.error("Error al llamar a la API de Gemini:", error);
                 geminiErrorDiv.classList.remove('hidden');
+                geminiErrorDiv.querySelector('p').textContent = `Ocurrió un error: ${error.message}. Por favor, intente de nuevo.`;
                 return null;
             } finally {
                 btnTextElem.classList.remove('hidden');
                 spinnerElem.classList.add('hidden');
             }
         }
+
 
         // --- Funciones de Renderizado ---
 
@@ -559,6 +608,10 @@
              // Oculta la respuesta de Gemini y el error cuando se cambia de servicio
             geminiResponseDiv.classList.add('hidden');
             geminiErrorDiv.classList.add('hidden');
+            
+            // Eliminar resumen de servicio anterior si existe
+            const oldSummary = document.getElementById('service-summary-gemini');
+            if (oldSummary) oldSummary.remove();
 
 
             // 4. Resalta el item activo en el menú
@@ -587,14 +640,24 @@
         askGeminiBtn.addEventListener('click', async () => {
             const question = geminiQuestionInput.value.trim();
             if (!question) {
-                alert("Por favor, introduce tu pregunta.");
+                geminiResponseText.textContent = "Por favor, introduce tu pregunta antes de presionar el botón.";
+                geminiResponseDiv.classList.remove('hidden');
                 return;
             }
+            // Ocultar el resumen de servicio si está visible
+            const oldSummary = document.getElementById('service-summary-gemini');
+            if (oldSummary) oldSummary.remove();
+
 
             // Concatenar el contenido de TODOS los servicios para que Gemini tenga el contexto completo
-            const fullContext = SERVICES_DATA.map(s => `## ${s.title}\n${s.content}`).join('\n\n');
+            // Usamos un simple textContent para evitar inyectar HTML malformado en el prompt
+            const allContentText = SERVICES_DATA.map(s => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = s.content;
+                return `## ${s.title}\n${tempDiv.textContent.trim()}`;
+            }).join('\n\n');
 
-            const prompt = `Basado en la siguiente información sobre los servicios de higiene urbana en Salta:\n\n${fullContext}\n\nResponde a la siguiente pregunta: "${question}". Si la información no está disponible, indica que no puedes responder con los datos proporcionados.`;
+            const prompt = `Basado en la siguiente información sobre los servicios de higiene urbana en Salta:\n\n${allContentText}\n\nResponde a la siguiente pregunta: "${question}". Si la información no está disponible, indica que no puedes responder con los datos proporcionados.`;
 
             const response = await callGeminiAPI(prompt, askGeminiText, askGeminiSpinner);
 
@@ -602,14 +665,20 @@
                 geminiResponseText.textContent = response;
                 geminiResponseDiv.classList.remove('hidden');
             } else {
-                geminiResponseDiv.classList.add('hidden'); // Ocultar si hubo un error
+                // Si hubo error, el div de error ya está visible por callGeminiAPI
+                geminiResponseDiv.classList.add('hidden'); 
             }
         });
 
         // Evento para el botón "Generar Resumen con Gemini"
         generateSummaryBtn.addEventListener('click', async () => {
             const currentServiceTitle = mainTitle.textContent;
-            const prompt = `Genera un resumen conciso de 2-3 párrafos sobre el siguiente servicio de higiene urbana en Salta, utilizando solo la información proporcionada:\n\n## ${currentServiceTitle}\n${currentServiceContent}`;
+             // Limpiar el contenido actual para pasarlo solo como texto plano al LLM
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentServiceContent;
+            const contentText = tempDiv.textContent.trim();
+
+            const prompt = `Genera un resumen conciso de 2 párrafos (máximo 150 palabras) sobre el siguiente servicio de higiene urbana en Salta, utilizando solo la información proporcionada:\n\n## ${currentServiceTitle}\n${contentText}`;
 
             const response = await callGeminiAPI(prompt, generateSummaryText, generateSummarySpinner);
 
@@ -618,7 +687,7 @@
                 const summaryHtml = `
                     <div id="service-summary-gemini" class="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
                         <p class="font-semibold text-gemini-purple">Resumen Generado por Gemini para "${currentServiceTitle}":</p>
-                        <p class="text-gray-700 mt-2 leading-relaxed">${response}</p>
+                        <p class="text-gray-700 mt-2 leading-relaxed">${response.replace(/\n/g, '<br>')}</p>
                     </div>
                 `;
                 // Eliminar resumen anterior si existe
@@ -626,7 +695,7 @@
                 if (oldSummary) oldSummary.remove();
 
                 generateSummaryBtn.insertAdjacentHTML('afterend', summaryHtml);
-                geminiResponseDiv.classList.add('hidden'); // Ocultar la respuesta principal de Gemini si se generó un resumen de servicio
+                geminiResponseDiv.classList.add('hidden'); // Ocultar la respuesta principal de Gemini 
             } else {
                 // Si hubo error, asegúrate de que el div del resumen no aparezca o sea limpiado
                  const oldSummary = document.getElementById('service-summary-gemini');
@@ -637,28 +706,10 @@
 
         // --- Inicialización de la Aplicación ---
         document.addEventListener('DOMContentLoaded', () => {
-            if (API_KEY === "YOUR_GEMINI_API_KEY" || !API_KEY) {
-                alert("ADVERTENCIA: Debes reemplazar 'YOUR_GEMINI_API_KEY' con tu clave API de Gemini real para que las funcionalidades de IA funcionen.");
-                askGeminiBtn.disabled = true;
-                generateSummaryBtn.disabled = true;
-                geminiQuestionInput.placeholder += " (API Key no configurada)";
-            }
-
+            // Ya no es necesario el mensaje de advertencia porque el usuario ha insertado la clave
             renderMenu();
             setActiveService(activeServiceId); // Muestra el resumen al inicio
         });
     </script>
 </body>
 </html>
-```
-
-### Configuración y Uso:
-
-1.  **Obtén tu API Key de Gemini:**
-    * Ve a Google AI Studio o a la Consola de Google Cloud para generar tu clave API.
-    * **Importante:** En una aplicación real, nunca expongas tu API Key directamente en el código del frontend. Deberías tener un servidor backend que maneje las solicitudes a la API de Gemini de forma segura. Para este ejemplo didáctico, la incluimos directamente en el cliente.
-2.  **Reemplaza `YOUR_GEMINI_API_KEY`:** Abre el archivo `index.html` y busca la línea:
-    ```javascript
-    const API_KEY = "YOUR_GEMINI_API_KEY"; // <<< REEMPLAZA ESTO
-    
-
