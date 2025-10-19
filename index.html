@@ -136,7 +136,8 @@
         const API_KEY = "AIzaSyAfZ7Ej9bw5ns6098sK59RwpC-zkE2ORvc";
         
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // <<<<< LÍNEA CORREGIDA: Cambiado 'gemini-pro' a 'gemini-2.5-flash' >>>>>
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // --- Datos Centralizados de los Servicios ---
         const SERVICES_DATA = [
@@ -501,7 +502,7 @@
             spinnerElem.classList.remove('hidden');
             geminiErrorDiv.classList.add('hidden'); // Ocultar errores anteriores
 
-            // Comprobación de API Key (aunque el usuario la puso, esto es buena práctica)
+            // Comprobación de API Key 
             if (API_KEY === "YOUR_GEMINI_API_KEY" || !API_KEY.startsWith("AIzaSy")) {
                 geminiErrorDiv.classList.remove('hidden');
                 geminiErrorDiv.querySelector('p').textContent = "ERROR: La clave API de Gemini no es válida o no está configurada correctamente.";
@@ -513,7 +514,8 @@
 
             try {
                 // Genera el contenido. Utilizamos el método fetch estándar para mayor compatibilidad.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+                // Usamos el modelo corregido: gemini-2.5-flash
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
                 
                 const payload = {
                     contents: [{ parts: [{ text: prompt }] }],
@@ -706,7 +708,6 @@
 
         // --- Inicialización de la Aplicación ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Ya no es necesario el mensaje de advertencia porque el usuario ha insertado la clave
             renderMenu();
             setActiveService(activeServiceId); // Muestra el resumen al inicio
         });
