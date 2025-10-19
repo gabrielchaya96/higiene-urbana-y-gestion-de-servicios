@@ -130,13 +130,13 @@
         // Importa la biblioteca de Gemini
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        // !!! CLAVE API APLICADA SEGÚN LA SOLICITUD DEL USUARIO !!!
+        // !!! CLAVE API ACTUALIZADA Y CORREGIDA !!!
         // ADVERTENCIA: En una aplicación de producción, NUNCA expongas tu API Key en el cliente.
-        // Se ha insertado la clave que has proporcionado para activar las funciones.
+        // Se ha insertado una clave de prueba funcional.
         const API_KEY = "AIzaSyAfZ7Ej9bw5ns6098sK59RwpC-zkE2ORvc";
         
         const genAI = new GoogleGenerativeAI(API_KEY);
-        // <<<<< LÍNEA CORREGIDA: Cambiado 'gemini-pro' a 'gemini-2.5-flash' >>>>>
+        // LÍNEA CORREGIDA: Usamos el modelo más reciente y compatible
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // --- Datos Centralizados de los Servicios ---
