@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Servicios de Higiene Urbana - Salta</title>
+    <!-- Carga de Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de Tailwind para usar el color primario y la fuente Inter --><script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-green': '#28A745', // Un verde que sugiere limpieza y ecología
+                        'secondary-blue': '#007BFF', // Un azul para acentos
+                        'gemini-purple': '#8E2DE2', // Un color distintivo para Gemini
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        /* Estilos personalizados para la interactividad */
+        .sidebar-item {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: #e2f0d9; /* Tono suave de verde */
+        }
+        .sidebar-item.active {
+            background-color: #28A745;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        /* Estilo para iconos de Lucide (usados como SVG inline) */
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        /* Estilo para un efecto de card con brillo */
+        .stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        /* Animación de carga */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #28A745;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased text-gray-800">
+
+    <div id="app" class="min-h-screen flex flex-col lg:flex-row">
+
+        <!-- Barra Lateral (Sidebar) de Navegación --><aside id="sidebar" class="w-full lg:w-72 bg-white shadow-xl lg:h-screen lg:sticky top-0 p-4 lg:p-6 flex-shrink-0">
+            <h1 class="text-2xl font-extrabold text-primary-green mb-6 border-b pb-3">Servicios de Higiene Urbana</h1>
+            <nav id="nav-menu" class="space-y-1">
+                <!-- El menú se llenará dinámicamente con JS --></nav>
+        </aside>
+
+        <!-- Contenido Principal --><main id="content-area" class="flex-grow p-4 lg:p-10">
+            <!-- Título Principal --><div class="mb-8">
+                <h2 id="main-title" class="text-4xl font-bold text-gray-700">Resumen Ejecutivo</h2>
+                <p id="main-subtitle" class="text-xl text-primary-green mt-1">Plan Integral de Agrotécnica Fueguina S.A.C.I.F.</p>
+            </div>
+
+            <!-- Sección de Preguntas con Gemini --><div class="bg-white rounded-xl shadow-lg p-6 lg:p-8 mb-8">
+                <h3 class="text-2xl font-semibold text-gemini-purple mb-4 flex items-center">
+                    <svg class="icon mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9.247a4.75 4.75 0 011.536-1.536l-2.45-2.45a4.75 4.75 0 01-1.536 1.536l2.45 2.45zm-1.536 1.536c-.495.495-.884 1.055-1.156 1.666l-2.45-2.45a4.75 4.75 0 011.666-1.156l2.45 2.45zm-2.45-2.45l2.45-2.45c-.61-.272-1.17-.661-1.666-1.156l-2.45 2.45a4.75 4.75 0 011.156 1.666zm1.536 1.536c.495.495 1.055.884 1.666 1.156l-2.45 2.45a4.75 4.75 0 01-1.156-1.666l2.45-2.45zM12 11a1 1 0 100-2 1 1 0 000 2z"></path>
+                    </svg>
+                    Pregúntale a Gemini sobre los Servicios
+                </h3>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="gemini-question-input" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gemini-purple" placeholder="Ej: ¿Cuál es la frecuencia de recolección en el Microcentro?">
+                    <button id="ask-gemini-btn" class="bg-gemini-purple text-white px-6 py-3 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 flex items-center justify-center">
+                        <span id="ask-gemini-text">Preguntar</span>
+                        <div id="ask-gemini-spinner" class="spinner ml-2 hidden"></div>
+                    </button>
+                </div>
+                <div id="gemini-response" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg hidden">
+                    <p class="font-semibold text-gemini-purple">Respuesta de Gemini:</p>
+                    <p id="gemini-response-text" class="text-gray-700 mt-2 leading-relaxed"></p>
+                </div>
+                <div id="gemini-error" class="mt-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg hidden">
+                    <p>Ocurrió un error al intentar comunicarse con Gemini. Por favor, intente de nuevo.</p>
+                </div>
+            </div>
+
+            <!-- Aquí se cargará el contenido dinámico --><div id="service-details" class="bg-white rounded-xl shadow-lg p-6 lg:p-10">
+                <!-- Botón de resumen de servicio por Gemini (solo visible en detalles de servicio) --><button id="generate-summary-btn" class="bg-gemini-purple text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition duration-300 mb-6 flex items-center hidden">
+                    <span id="generate-summary-text">Generar Resumen con Gemini</span>
+                    <div id="generate-summary-spinner" class="spinner ml-2 hidden"></div>
+                </button>
+                <!-- El contenido del servicio se cargará aquí --></div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Importa la biblioteca de Gemini
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        // TODO: Reemplaza con tu API Key.
+        // ADVERTENCIA: En una aplicación de producción, NUNCA expongas tu API Key directamente en el cliente.
+        // Utiliza un backend para manejar las llamadas a la API de Gemini de forma segura.
+        const API_KEY = "YOUR_GEMINI_API_KEY"; // <<< REEMPLAZA ESTO
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        // --- Datos Centralizados de los Servicios ---
+        const SERVICES_DATA = [
+            {
+                id: 'resumen',
+                title: 'Resumen Ejecutivo',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`,
+                content: `
+                    <div class="space-y-6">
+                        <p class="text-lg leading-relaxed">Este documento detalla el plan de trabajo integral para la higiene urbana de Salta. La operación se basa en una <strong>sectorización por zonas</strong> (Microcentro, Macrocentro y Periferia) y múltiples turnos (matutino, vespertino, nocturno) para optimizar la eficiencia.</p>
+                        <h3 class="text-2xl font-semibold text-secondary-blue border-b pb-2">Estrategia Operativa Clave</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-4 bg-gray-100 rounded-lg">
+                                <h4 class="font-bold text-lg">Sectorización Detallada</h4>
+                                <p>Diferentes frecuencias y horarios según las necesidades específicas de <strong>Microcentro, Macrocentro y Periferia</strong>.</p>
+                            </div>
+                            <div class="p-4 bg-gray-100 rounded-lg">
+                                <h4 class="font-bold text-lg">Atención Centralizada (CAO)</h4>
+                                <p>Un Centro de Atención Operativa centraliza reclamos, información y resuelve incidencias para garantizar la calidad del servicio.</p>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-base">La gestión abarca desde la recolección domiciliaria (hasta 14 veces/semana en Microcentro) hasta servicios especializados como limpieza de imbornales, canales y corte de césped estacional.</p>
+                    </div>
+                `
+            },
+            {
+                id: 'recoleccion-domiciliaria',
+                title: '1. Recolección Domiciliaria General',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Cobertura Total</p>
+                            <p class="text-3xl font-extrabold">11,833</p>
+                            <p class="text-sm font-semibold">Cuadras Abarcadas</p>
+                        </div>
+                        <div class="stat-card bg-secondary-blue text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Personal Asignado (Total)</p>
+                            <p class="text-3xl font-extrabold">168</p>
+                            <p class="text-sm font-semibold">58 Choferes | 110 Recolectores</p>
+                        </div>
+                        <div class="stat-card bg-yellow-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Capacidad Contenedores</p>
+                            <p class="text-3xl font-extrabold">75</p>
+                            <p class="text-sm font-semibold">Unidades (50x1m³ + 25x5m³)</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Frecuencias y Zonas</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500 rounded-lg overflow-hidden">
+                            <thead class="text-xs text-white uppercase bg-gray-600">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Zona</th>
+                                    <th scope="col" class="px-6 py-3">Frecuencia</th>
+                                    <th scope="col" class="px-6 py-3">Turnos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-bold text-primary-green">Microcentro</td>
+                                    <td class="px-6 py-4">F14 (14 veces/semana)</td>
+                                    <td class="px-6 py-4">Matutino (L-S) y Nocturno (L-D)</td>
+                                </tr>
+                                <tr class="bg-gray-50 border-b hover:bg-gray-100">
+                                    <td class="px-6 py-4 font-medium text-gray-900">Macrocentro y Periferia</td>
+                                    <td class="px-6 py-4">F4 (4 veces/semana)</td>
+                                    <td class="px-6 py-4">Matutino o Nocturno (según área)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `
+            },
+            {
+                id: 'limpieza-microbasurales',
+                title: '2. Limpieza de Microbasurales',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-red-600 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Erradicación Crónica (Tiempo de Respuesta)</p>
+                            <p class="text-3xl font-extrabold">48 - 72</p>
+                            <p class="text-sm font-semibold">Horas desde el aviso</p>
+                        </div>
+                        <div class="stat-card bg-gray-700 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Personal y Equipos (Total)</p>
+                            <p class="text-3xl font-extrabold">34</p>
+                            <p class="text-sm font-semibold">Choferes, Maquinistas y Recolectores</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Metodología y Turnos</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><strong>Alcance:</strong> Cubre zonas definidas (Plano SO P1), excluyendo áreas privadas o no municipales.</li>
+                        <li><strong>Tipos de Residuos:</strong> Sólidos, semisólidos, orgánicos e inorgánicos (incluye poda y escombros).</li>
+                        <li><strong>Logística:</strong> La información se centraliza en el <strong>CAO</strong> (Centro de Atención Operativa) para la distribución de tareas.</li>
+                        <li><strong>Turno Nocturno (21:00 - 04:00 hs):</strong> Prioridad en Micro y Macrocentro.</li>
+                        <li><strong>Turno Matutino y Vespertino:</strong> Cobertura en el resto de la ciudad (Norte, Sur, Este, Oeste).</li>
+                    </ul>
+                `
+            },
+            {
+                id: 'recoleccion-selectiva',
+                title: '3. Recolección Selectiva (Reciclaje)',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.418 0a13.31 13.31 0 00-5.747-.942m0 0l.942.942m-.942-.942l.942-.942m-3.473-1.077a7.001 7.001 0 00-6.07 11.458M6.48 9.57a7.001 7.001 0 008.381 7.086m0 0l.942-.942m-.942.942l.942.942M20 10V4a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h7M15 19l4.5 4.5 4.5-4.5M16 19h7"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Días de Recolección</p>
+                            <p class="text-3xl font-extrabold">Martes y Jueves</p>
+                            <p class="text-sm font-semibold">Fracción Seca (Voluntario)</p>
+                        </div>
+                        <div class="stat-card bg-indigo-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Eco Puntos Colocados (a Abr 2023)</p>
+                            <p class="text-3xl font-extrabold">78</p>
+                            <p class="text-sm font-semibold">Campanas y Contenedores Volquetes</p>
+                        </div>
+                        <div class="stat-card bg-secondary-blue text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Frecuencia Microcentro</p>
+                            <p class="text-3xl font-extrabold">F2</p>
+                            <p class="text-sm font-semibold">Dos veces por semana (Puerta a Puerta)</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Modalidades de Acondicionamiento</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <h4 class="font-bold text-lg">Puerta a Puerta</h4>
+                            <p>Recolección directa en domicilios adheridos. El material debe estar limpio y seco (papel, cartón, vidrio, plástico, tetra brick).</p>
+                        </div>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <h4 class="font-bold text-lg">Eco Puntos</h4>
+                            <p>Puntos fijos con contenedores plásticos (1m³) o campanas, ubicados en instituciones y lugares estratégicos para el acopio de secos.</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'barrido-calzadas',
+                title: '4. Barrido de Calzadas',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>`,
+                content: `
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Cobertura y Modalidades</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-blue-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Barrido Manual</p>
+                            <p class="text-3xl font-extrabold">7,817</p>
+                            <p class="text-sm font-semibold">Cuadras (7 bases operativas)</p>
+                        </div>
+                        <div class="stat-card bg-teal-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Barrido Mecánico</p>
+                            <p class="text-3xl font-extrabold">2,663</p>
+                            <p class="text-sm font-semibold">Cuadras (18 recorridos, 2 turnos)</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Frecuencias por Área</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500 rounded-lg overflow-hidden">
+                            <thead class="text-xs text-white uppercase bg-gray-600">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Zona</th>
+                                    <th scope="col" class="px-6 py-3">Frecuencia</th>
+                                    <th scope="col" class="px-6 py-3">Horario Típico</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-bold text-primary-green">Microcentro</td>
+                                    <td class="px-6 py-4">F7 (7 veces/sem)</td>
+                                    <td class="px-6 py-4">Matutino (06:00) y Vespertino (19:00)</td>
+                                </tr>
+                                <tr class="bg-gray-50 border-b hover:bg-gray-100">
+                                    <td class="px-6 py-4 font-medium text-gray-900">Macrocentro</td>
+                                    <td class="px-6 py-4">F6 o F3</td>
+                                    <td class="px-6 py-4">Matutino (06:00)</td>
+                                </tr>
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-bold text-primary-green">Periferia</td>
+                                    <td class="px-6 py-4">F2</td>
+                                    <td class="px-6 py-4">Matutino (06:00)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `
+            },
+            {
+                id: 'limpieza-imbornales',
+                title: '5. Limpieza y Desobstrucción de Imbornales',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7h12l2-4h-5.414M16 7l2-4M12 10V4M7 4h10M4 10V4m1-4h18m-5 16h5M1 10h12l2-4h5.414M16 10l2-4M12 4V0M7 0h10M4 4h16"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-secondary-blue text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Bocas de Tormenta Identificadas</p>
+                            <p class="text-3xl font-extrabold">1,227</p>
+                            <p class="text-sm font-semibold">En 412 direcciones (Micro, Macro y Periferia)</p>
+                        </div>
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Frecuencia de Limpieza</p>
+                            <p class="text-3xl font-extrabold">Mensual</p>
+                            <p class="text-sm font-semibold">Se limpian hasta 3,600 imbornales/mes</p>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Proceso de Desobstrucción</h3>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>Limpieza externa de rejillas (palas y barretas).</li>
+                        <li>Levantamiento de tapa/reja para limpieza interior.</li>
+                        <li>Desobstrucción del conducto con varillas de 6 metros y agua.</li>
+                        <li>Uso de <strong>equipo desobstructor succionador/expulsor</strong> en casos complejos.</li>
+                        <li>Horario de Servicio: Lunes a Sábados, 06:00 a 13:00 hs.</li>
+                    </ol>
+                `
+            },
+            {
+                id: 'limpieza-areas-turisticas',
+                title: '6. Limpieza de Áreas Turísticas',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM12 11V8M15 11h-6M12 15a3 3 0 100-6 3 3 0 000 6z"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-purple-600 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Frecuencia de Servicio</p>
+                            <p class="text-3xl font-extrabold">3 Veces</p>
+                            <p class="text-sm font-semibold">Por semana (Limpieza y Lavado)</p>
+                        </div>
+                        <div class="stat-card bg-gray-700 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Equipamiento Clave</p>
+                            <p class="text-3xl font-extrabold">Camión Cisterna</p>
+                            <p class="text-sm font-semibold">Usado para lavado de veredas y explanadas</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Áreas Destacadas y Horarios</h3>
+                    <p class="text-gray-700 mb-4">El servicio abarca Plaza 9 de Julio, Recovas, Monumento a Güemes, Peatonales (Florida, Alberdi, Mitre, etc.), Plazoleta 4 Siglos y áreas históricas.</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><strong>Matutino:</strong> 06:00 a 13:00 hs.</li>
+                        <li><strong>Vespertino (Permanencia en Microcentro):</strong> 19:00 a 02:00 hs.</li>
+                        <li><strong>Nocturno:</strong> 22:00 a 05:00 hs.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 'limpieza-espacios-verdes',
+                title: '7. Limpieza de Espacios Verdes Públicos',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-4-4V1m8 8v4a8 8 0 01-8 8v-4m-10-4v4a8 8 0 008 8v-4M4 11V7a4 4 0 014-4v4"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Área Total Cubierta</p>
+                            <p class="text-3xl font-extrabold">186.985</p>
+                            <p class="text-sm font-semibold">Hectáreas</p>
+                        </div>
+                        <div class="stat-card bg-secondary-blue text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Personal Asignado</p>
+                            <p class="text-3xl font-extrabold">18</p>
+                            <p class="text-sm font-semibold">Barrenderos (Turno Matutino)</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Frecuencias y Metodología</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><strong>Alcance:</strong> 25 lugares, incluyendo Plaza 9 de Julio (Diaria), Parque San Martín (Diaria), Av. Bolivia y Av. J.F. Kennedy (Semanal/Bisemanal).</li>
+                        <li><strong>Tarea:</strong> Recolección y embolsado de residuos. El material es retirado posteriormente por la Recolección de Microbasurales.</li>
+                        <li><strong>Horario:</strong> 06:00 a 13:00 hs.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 'limpieza-canales',
+                title: '8. Limpieza de Canales',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Longitud Total de Canales</p>
+                            <p class="text-3xl font-extrabold">10,935</p>
+                            <p class="text-sm font-semibold">Metros lineales (6 canales principales)</p>
+                        </div>
+                        <div class="stat-card bg-orange-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Limpieza Integral</p>
+                            <p class="text-3xl font-extrabold">2 Veces/Año</p>
+                            <p class="text-sm font-semibold">Abril-Mayo y Octubre-Noviembre</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Canales Principales y Mantenimiento</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><strong>Canales:</strong> Coronel Vidt (4,445m), Esteco (2,193m), Chartas, Constitución, Saavedra y Astigueta.</li>
+                        <li><strong>Mantenimiento Mensual:</strong> Limpieza general, desmalezamiento y extracción de residuos en los meses restantes.</li>
+                        <li><strong>Propósito:</strong> Asegurar el correcto escurrimiento de líquidos y prevenir inundaciones.</li>
+                        <li><strong>Personal:</strong> 1 Chofer, 1 Maquinista y 10 Operarios de limpieza.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 'corte-cesped',
+                title: '9. Corte de Césped (Estacional)',
+                icon: `<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10H6M7 16V4a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2zM9 16h4"></path></svg>`,
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="stat-card bg-primary-green text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Cortes Anuales</p>
+                            <p class="text-3xl font-extrabold">13</p>
+                            <p class="text-sm font-semibold">Distribución estacional</p>
+                        </div>
+                        <div class="stat-card bg-secondary-blue text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Máximo de Personal</p>
+                            <p class="text-3xl font-extrabold">45</p>
+                            <p class="text-sm font-semibold">Operarios en meses de alto crecimiento (Dic-Feb)</p>
+                        </div>
+                        <div class="stat-card bg-red-500 text-white p-5 rounded-xl shadow-md">
+                            <p class="text-sm opacity-80">Área Total de Mantenimiento</p>
+                            <p class="text-3xl font-extrabold">181.967</p>
+                            <p class="text-sm font-semibold">Hectáreas (24 sitios)</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-primary-green border-b pb-2 mb-4">Distribución Estacional de Cortes</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li><strong>3 Cortes/Mes:</strong> Diciembre, Enero, Febrero (Alta estación).</li>
+                        <li><strong>2 Cortes/Mes:</strong> Marzo.</li>
+                        <li><strong>1 Corte/Mes:</strong> Noviembre, Abril.</li>
+                        <li><strong>Equipamiento:</strong> 4 Tractores, 5 Mini Tractores, 35 Cortadoras de césped a explosión.</li>
+                    </ul>
+                `
+            }
+        ];
+
+        let activeServiceId = 'resumen';
+        let currentServiceContent = ''; // Para almacenar el contenido del servicio actual y pasarlo a Gemini
+
+        // --- Elementos del DOM ---
+        const navMenu = document.getElementById('nav-menu');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const serviceDetails = document.getElementById('service-details');
+        const geminiQuestionInput = document.getElementById('gemini-question-input');
+        const askGeminiBtn = document.getElementById('ask-gemini-btn');
+        const askGeminiText = document.getElementById('ask-gemini-text');
+        const askGeminiSpinner = document.getElementById('ask-gemini-spinner');
+        const geminiResponseDiv = document.getElementById('gemini-response');
+        const geminiResponseText = document.getElementById('gemini-response-text');
+        const geminiErrorDiv = document.getElementById('gemini-error');
+        const generateSummaryBtn = document.getElementById('generate-summary-btn');
+        const generateSummaryText = document.getElementById('generate-summary-text');
+        const generateSummarySpinner = document.getElementById('generate-summary-spinner');
+
+
+        // --- Funciones de Llamada a Gemini ---
+
+        /**
+         * Realiza una llamada a la API de Gemini con un prompt dado.
+         * Muestra/oculta spinners y mensajes de error.
+         * @param {string} prompt - El texto de la solicitud para Gemini.
+         * @param {HTMLElement} btnTextElem - Elemento de texto del botón.
+         * @param {HTMLElement} spinnerElem - Elemento del spinner.
+         * @returns {Promise<string|null>} La respuesta de Gemini o null en caso de error.
+         */
+        async function callGeminiAPI(prompt, btnTextElem, spinnerElem) {
+            btnTextElem.classList.add('hidden');
+            spinnerElem.classList.remove('hidden');
+            geminiErrorDiv.classList.add('hidden'); // Ocultar errores anteriores
+
+            try {
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
+                return text;
+            } catch (error) {
+                console.error("Error al llamar a la API de Gemini:", error);
+                geminiErrorDiv.classList.remove('hidden');
+                return null;
+            } finally {
+                btnTextElem.classList.remove('hidden');
+                spinnerElem.classList.add('hidden');
+            }
+        }
+
+        // --- Funciones de Renderizado ---
+
+        /**
+         * Renderiza el menú de navegación lateral.
+         */
+        function renderMenu() {
+            navMenu.innerHTML = SERVICES_DATA.map(service => `
+                <div id="item-${service.id}"
+                     class="sidebar-item flex items-center ${service.id === activeServiceId ? 'active' : 'bg-white text-gray-700'}"
+                     data-id="${service.id}">
+                    ${service.icon}
+                    <span class="text-sm">${service.title}</span>
+                </div>
+            `).join('');
+
+            // Asigna eventos de click a los elementos del menú
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    setActiveService(id);
+                });
+            });
+        }
+
+        /**
+         * Renderiza el contenido del servicio seleccionado.
+         * @param {string} id - ID del servicio a mostrar.
+         */
+        function renderContent(id) {
+            const service = SERVICES_DATA.find(s => s.id === id);
+            if (!service) return;
+
+            // Almacena el contenido HTML del servicio actual para el botón de resumen
+            currentServiceContent = service.content;
+
+            // 1. Actualiza Títulos
+            mainTitle.textContent = service.title;
+            mainSubtitle.textContent = id === 'resumen' ?
+                'Plan Integral de Agrotécnica Fueguina S.A.C.I.F.' :
+                'Detalle de Operaciones y Estadísticas';
+
+            // 2. Carga Contenido
+            serviceDetails.innerHTML = service.content;
+
+            // 3. Muestra/Oculta el botón de resumen de Gemini
+            if (id === 'resumen') {
+                generateSummaryBtn.classList.add('hidden');
+            } else {
+                generateSummaryBtn.classList.remove('hidden');
+            }
+             // Oculta la respuesta de Gemini y el error cuando se cambia de servicio
+            geminiResponseDiv.classList.add('hidden');
+            geminiErrorDiv.classList.add('hidden');
+
+
+            // 4. Resalta el item activo en el menú
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active', 'text-white', 'bg-primary-green');
+                item.classList.add('bg-white', 'text-gray-700');
+                if (item.getAttribute('data-id') === id) {
+                    item.classList.add('active', 'text-white', 'bg-primary-green');
+                    item.classList.remove('bg-white', 'text-gray-700');
+                }
+            });
+        }
+
+        /**
+         * Cambia el servicio activo.
+         * @param {string} id - Nuevo ID del servicio activo.
+         */
+        function setActiveService(id) {
+            activeServiceId = id;
+            renderContent(id);
+        }
+
+        // --- Manejadores de Eventos ---
+
+        // Evento para el botón "Preguntar a Gemini"
+        askGeminiBtn.addEventListener('click', async () => {
+            const question = geminiQuestionInput.value.trim();
+            if (!question) {
+                alert("Por favor, introduce tu pregunta.");
+                return;
+            }
+
+            // Concatenar el contenido de TODOS los servicios para que Gemini tenga el contexto completo
+            const fullContext = SERVICES_DATA.map(s => `## ${s.title}\n${s.content}`).join('\n\n');
+
+            const prompt = `Basado en la siguiente información sobre los servicios de higiene urbana en Salta:\n\n${fullContext}\n\nResponde a la siguiente pregunta: "${question}". Si la información no está disponible, indica que no puedes responder con los datos proporcionados.`;
+
+            const response = await callGeminiAPI(prompt, askGeminiText, askGeminiSpinner);
+
+            if (response) {
+                geminiResponseText.textContent = response;
+                geminiResponseDiv.classList.remove('hidden');
+            } else {
+                geminiResponseDiv.classList.add('hidden'); // Ocultar si hubo un error
+            }
+        });
+
+        // Evento para el botón "Generar Resumen con Gemini"
+        generateSummaryBtn.addEventListener('click', async () => {
+            const currentServiceTitle = mainTitle.textContent;
+            const prompt = `Genera un resumen conciso de 2-3 párrafos sobre el siguiente servicio de higiene urbana en Salta, utilizando solo la información proporcionada:\n\n## ${currentServiceTitle}\n${currentServiceContent}`;
+
+            const response = await callGeminiAPI(prompt, generateSummaryText, generateSummarySpinner);
+
+            if (response) {
+                // Mostrar el resumen justo debajo del botón o en una nueva sección
+                const summaryHtml = `
+                    <div id="service-summary-gemini" class="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <p class="font-semibold text-gemini-purple">Resumen Generado por Gemini para "${currentServiceTitle}":</p>
+                        <p class="text-gray-700 mt-2 leading-relaxed">${response}</p>
+                    </div>
+                `;
+                // Eliminar resumen anterior si existe
+                const oldSummary = document.getElementById('service-summary-gemini');
+                if (oldSummary) oldSummary.remove();
+
+                generateSummaryBtn.insertAdjacentHTML('afterend', summaryHtml);
+                geminiResponseDiv.classList.add('hidden'); // Ocultar la respuesta principal de Gemini si se generó un resumen de servicio
+            } else {
+                // Si hubo error, asegúrate de que el div del resumen no aparezca o sea limpiado
+                 const oldSummary = document.getElementById('service-summary-gemini');
+                if (oldSummary) oldSummary.remove();
+            }
+        });
+
+
+        // --- Inicialización de la Aplicación ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (API_KEY === "YOUR_GEMINI_API_KEY" || !API_KEY) {
+                alert("ADVERTENCIA: Debes reemplazar 'YOUR_GEMINI_API_KEY' con tu clave API de Gemini real para que las funcionalidades de IA funcionen.");
+                askGeminiBtn.disabled = true;
+                generateSummaryBtn.disabled = true;
+                geminiQuestionInput.placeholder += " (API Key no configurada)";
+            }
+
+            renderMenu();
+            setActiveService(activeServiceId); // Muestra el resumen al inicio
+        });
+    </script>
+</body>
+</html>
+```
+
+### Configuración y Uso:
+
+1.  **Obtén tu API Key de Gemini:**
+    * Ve a Google AI Studio o a la Consola de Google Cloud para generar tu clave API.
+    * **Importante:** En una aplicación real, nunca expongas tu API Key directamente en el código del frontend. Deberías tener un servidor backend que maneje las solicitudes a la API de Gemini de forma segura. Para este ejemplo didáctico, la incluimos directamente en el cliente.
+2.  **Reemplaza `YOUR_GEMINI_API_KEY`:** Abre el archivo `index.html` y busca la línea:
+    ```javascript
+    const API_KEY = "YOUR_GEMINI_API_KEY"; // <<< REEMPLAZA ESTO
+    
